@@ -5,7 +5,7 @@
       </slot>
     </div>
     <div class="dots">
-      <span class="dot" v-for="(item,index) in dots" :class="{ active: pagesIndex==index }">{{index}}</span>
+      <span class="dot" v-for="(item,index) in dots" :class="{ active: currentPageIndex==index }">{{index}}</span>
     </div>
   </div>
 </template>
@@ -17,7 +17,7 @@ import {addClass} from 'common/js/dom'
     data(){
       return{
         dots:[],
-        pagesIndex:0
+        currentPageIndex:0
       }
     },
     props:{
@@ -38,6 +38,9 @@ import {addClass} from 'common/js/dom'
       setTimeout(()=>{
         this._setSliderWidth()
         this._initSlider()
+        if(this.autoPlay){
+          this._play()
+        }
       },20)
       
     },
@@ -66,15 +69,31 @@ import {addClass} from 'common/js/dom'
           scrollY:false,
           momentum:false,
           snap:true,
-          snapLoop:this.loop
+          snapLoop:this.loop,
+          snapSpeed:400,
+          snapThreshold:0.3,
+          click:true
         })
         this.slider.on('scrollEnd',()=>{
-          let pageindex = this.slider.getCurrentPage().pageX
+          let pageIndex = this.slider.getCurrentPage().pageX
           if(this.loop){
-            pageindex -= 1
+            pageIndex -= 1
           }
-           this.pagesIndex = pageindex
+           this.currentPageIndex = pageIndex
+           if(this.autoPlay){
+            clearTimeout(this.timer)
+            this._play()
+           }
         })
+      },
+      _play(){
+        let pageIndex = this.currentPageIndex +1
+        if(this.loop){
+          pageIndex +=1
+        }
+        this.timer = setTimeout(()=>{
+          this.slider.goToPage(pageIndex,0,400)
+        },this.interval)
       }
     }
   }
